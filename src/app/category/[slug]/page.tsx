@@ -28,7 +28,8 @@ export default async function CategoryPage({
     }
 
     if (apiProducts.length > 0) {
-      const allMapped = apiProducts.map(mapApiProduct);
+      const categoryMap = new Map(apiCategories.map(c => [c.categoryId ?? c.id ?? 0, c.categoryName]));
+      const allMapped = apiProducts.map(p => mapApiProduct(p, categoryMap));
       // Filter by matching category name or slug
       const catName = (category?.categoryName ?? "").toLowerCase();
       let filtered = allMapped.filter(p =>
