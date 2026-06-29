@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendOtp } from "@/lib/api";
+import { sendOtp, guestRegister, activateCustomer } from "@/lib/api";
 
 export async function POST(req: Request) {
   try {
@@ -12,9 +12,18 @@ export async function POST(req: Request) {
     // Strip to digits only, take last 10
     const cleaned = phoneNumber.replace(/\D/g, "").slice(-10);
 
-    const res = await sendOtp(cleaned);
+    let res = await sendOtp(cleaned);
 
-    // API returns code 200 on success
+    // If OTP failed (phone not found / inactive), register + activate then retry once
+    if (res.code !== 200) {
+      const regRes = await guestRegister(cleaned);
+      const customerId = regRes.data?.customerId;
+      if (customerId) {
+        await activateCustomer(customerId, cleaned);
+      }
+      res = await sendOtp(cleaned);
+    }
+
     if (res.code !== 200) {
       return NextResponse.json({ error: res.message ?? "Failed to send OTP." }, { status: 400 });
     }

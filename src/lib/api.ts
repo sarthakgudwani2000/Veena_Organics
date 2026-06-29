@@ -282,6 +282,23 @@ export async function getSubCategories(params?: {
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
+// Register a new guest customer by phone number
+export async function guestRegister(phoneNumber: string): Promise<GlobalResponse<{ customerId?: number; customerActive?: boolean }>> {
+  return apiFetch(`/customer/guestRegister?phoneNumber=${encodeURIComponent(phoneNumber)}`, {
+    method: "POST",
+    next: { revalidate: 0 },
+  });
+}
+
+// Activate a customer account
+export async function activateCustomer(customerId: number, phoneNumber: string, name?: string): Promise<GlobalResponse<unknown>> {
+  return apiFetch("/customer/addUpdateCustomer", {
+    method: "POST",
+    body: JSON.stringify({ customerId, phoneNumber, customerActive: true, customerName: name ?? null }),
+    next: { revalidate: 0 },
+  });
+}
+
 // Send OTP to phone number
 export async function sendOtp(phoneNumber: string): Promise<GlobalResponse<unknown>> {
   return apiFetch("/login/otp", {
